@@ -5,6 +5,7 @@ mod level;
 mod loading;
 mod player;
 mod stats;
+mod gerald;
 
 const TITLE: &str = "Below - Level Demo";
 const WIN_W: f32 = 1280.;
@@ -53,6 +54,7 @@ fn main() {
             level::LevelPlugin,
             loading::LoadingPlugin,
             player::PlayerPlugin,
+            gerald::GeraldPlugin,
         ))
         // Run the game
         .run();
