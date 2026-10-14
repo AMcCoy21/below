@@ -5,7 +5,7 @@ use crate::{
     camera::CameraTarget,
     level::Brick,
     loading::{LoadingAssets, despawn_with},
-    stats::{Health, MoveSpeed, PLAYER_HEALTH, PLAYER_SPEED},
+    stats::{Damage, Health, MoveSpeed, PLAYER_DAMAGE, PLAYER_HEALTH, PLAYER_SPEED},
 };
 
 const GRAVITY: f32 = 2000.;
@@ -109,6 +109,7 @@ fn spawn_player(mut commands: Commands, sheet: Res<PlayerSheet>) {
         Player::default(),
         AnimationTimer(Timer::from_seconds(FRAME_TIME, TimerMode::Repeating)),
         Health::new(PLAYER_HEALTH),
+        Damage(PLAYER_DAMAGE),
         MoveSpeed(PLAYER_SPEED),
         CameraTarget,
     ));
