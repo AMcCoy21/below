@@ -33,7 +33,7 @@ fn load_level(
     asset_server: Res<AssetServer>,
     mut loading_assets: ResMut<LoadingAssets>,
 ) {
-    let bg_texture_handle = asset_server.load("JakeBiondolillo.png");
+    let bg_texture_handle = asset_server.load("slideshow/JakeBiondolillo.png");
 
     loading_assets.0.push(bg_texture_handle.clone().untyped());
     commands.insert_resource(BackgroundImage(bg_texture_handle));
