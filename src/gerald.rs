@@ -25,6 +25,7 @@ impl Plugin for GeraldPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, load_gerald)
             .add_systems(OnEnter(GameState::Playing), spawn_gerald)
+            .add_systems(Update, move_gerald)
             .add_systems(OnExit(GameState::Playing), despawn_with::<Gerald>);
     }
 }
@@ -49,4 +50,16 @@ fn spawn_gerald(mut commands: Commands, sheet: Res<GeraldSheet>) {
         Health::new(GERALD_HEALTH),
         MoveSpeed(GERALD_SPEED),
     ));
+}
+
+fn move_gerald(
+    time: Res<Time>,
+    gerald: Single<(&mut Transform, &mut Gerald, &MoveSpeed)>,
+) {
+    let (mut tf, mut gerald, speed) = gerald.into_inner();
+    let dt = time.delta_secs().min(1. / 30.);
+
+    gerald.velocity.x = 10.0;
+
+    tf.translation.x += gerald.velocity.x * dt;
 }
