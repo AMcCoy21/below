@@ -5,6 +5,7 @@ mod level;
 mod loading;
 mod player;
 mod stats;
+mod gerald;
 mod proc_gen {
     pub mod geometry;
 }
@@ -56,6 +57,7 @@ fn main() {
             level::LevelPlugin,
             loading::LoadingPlugin,
             player::PlayerPlugin,
+            gerald::GeraldPlugin,
         ))
         // Run the game
         .run();
