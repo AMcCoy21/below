@@ -74,10 +74,13 @@ fn setup_level(
     while (i as f32) * TILE_SIZE < LEVEL_LEN {
         commands
             .spawn((
-                Sprite::from_image(brick_image.0.clone()),
+                Sprite {
+                    image: brick_image.0.clone(),
+                    custom_size: Some(Vec2::splat(TILE_SIZE)),
+                    ..default()
+                },
                 Transform {
                     translation: t,
-                    scale: Vec3::splat(2.0),
                     ..default()
                 },
                 Brick,

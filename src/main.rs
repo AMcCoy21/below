@@ -6,15 +6,17 @@ mod loading;
 mod player;
 mod stats;
 mod gerald;
+mod menus;
 mod proc_gen {
     pub mod geometry;
+    pub mod room_generation;
 }
 
 const TITLE: &str = "Below - Level Demo";
 const WIN_W: f32 = 1280.;
 const WIN_H: f32 = 720.;
 
-const TILE_SIZE: f32 = 64.;
+const TILE_SIZE: f32 = 32.;
 
 const LEVEL_LEN: f32 = WIN_W * 4.;
 const LEVEL_H: f32 = WIN_H * 2.;
@@ -29,7 +31,12 @@ const LEVEL_TOP: f32 = LEVEL_BOTTOM + LEVEL_H;
 enum GameState {
     #[default]
     Loading,
+    MainMenu,
     Playing,
+    RoomGeneration,
+    ProcGenMenu,
+    Triangulation,
+    Mst,
 }
 
 fn main() {
@@ -58,6 +65,8 @@ fn main() {
             loading::LoadingPlugin,
             player::PlayerPlugin,
             gerald::GeraldPlugin,
+            menus::MenuPlugin,
+            proc_gen::room_generation::RoomGenerationPlugin,
         ))
         // Run the game
         .run();

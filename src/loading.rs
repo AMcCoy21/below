@@ -15,8 +15,12 @@ impl Plugin for LoadingPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(LoadingAssets(Vec::new()))
             .add_systems(OnEnter(GameState::Loading), setup_loading)
-            .add_systems(Update, update_loading.run_if(in_state(GameState::Loading)))
-            .add_systems(Update, load_timer)
+            .add_systems(
+                Update,
+                (load_timer, update_loading)
+                    .chain()
+                    .run_if(in_state(GameState::Loading)),
+            )
             .add_systems(
                 OnExit(GameState::Loading),
                 (
@@ -36,7 +40,7 @@ fn setup_loading(mut commands: Commands) {
 
 fn update_loading(
     asset_server: Res<AssetServer>,
-    loading_assets: ResMut<LoadingAssets>,
+    loading_assets: Res<LoadingAssets>,
     mut next_state: ResMut<NextState<GameState>>,
     timed_load: Res<TimedLoad>,
 ) {
@@ -56,7 +60,7 @@ fn update_loading(
 
     // Check if all assets are loaded
     if loaded == total {
-        next_state.set(GameState::Playing);
+        next_state.set(GameState::MainMenu);
     }
 }
 
