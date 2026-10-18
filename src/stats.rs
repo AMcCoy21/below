@@ -18,6 +18,9 @@ impl Health {
 pub struct Damage(pub f32);// How much damage this entity deals when it hits something.
 
 #[derive(Component)]
+pub struct Invulnerable; // damage systems skip entities with this
+
+#[derive(Component)]
 pub struct MoveSpeed(pub f32);
 
 #[derive(Component)]
@@ -61,7 +64,7 @@ impl EnemyStats {
 
 pub const HIVEMIND: EnemyStats = EnemyStats {
     health: 30.0,
-    damage: 10.0,
+    damage: 5.0,
     speed: 60.0,
 };
 //constructor for gerald stats
@@ -70,3 +73,12 @@ pub const GERALD: EnemyStats = EnemyStats {
     damage: GERALD_DAMAGE,
     speed: GERALD_SPEED,
 };
+
+pub const STRAIGHT_TEETH: EnemyStats = EnemyStats {
+    health: f32::INFINITY,
+    damage: 20.0,
+    speed: 0.0,
+};
+//straight teeth is invulnerable but it has a hitbox
+//because it can still be hit by the player, but it won't take damage unless hit by a powerup.
+commands.spawn((STRAIGHT_TEETH.bundle(), Invulnerable, Hitbox(Vec2::new(32., 32.))));
