@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use crate::{
-    GameState, LEVEL_LEN, TILE_SIZE, WIN_H, WIN_W,
+    GameState, LEVEL_H, LEVEL_LEN, TILE_SIZE, WIN_H, WIN_W,
     loading::{LoadingAssets, despawn_with},
 };
 
@@ -33,12 +33,12 @@ fn load_level(
     asset_server: Res<AssetServer>,
     mut loading_assets: ResMut<LoadingAssets>,
 ) {
-    let bg_texture_handle = asset_server.load("JakeBiondolillo.png");
+    let bg_texture_handle = asset_server.load("slideshow/JakeBiondolillo.png");
 
     loading_assets.0.push(bg_texture_handle.clone().untyped());
     commands.insert_resource(BackgroundImage(bg_texture_handle));
 
-    let brick_image_handle: Handle<Image> = asset_server.load("basic_stone_sprite.png");
+    let brick_image_handle: Handle<Image> = asset_server.load("tiles/basic_stone_sprite.png");
     loading_assets.0.push(brick_image_handle.clone().untyped());
 
     commands.insert_resource(BrickImage(brick_image_handle));
@@ -49,15 +49,20 @@ fn setup_level(
     background_image: Res<BackgroundImage>,
     brick_image: Res<BrickImage>,
 ) {
-    let mut x_offset = 0.;
-    while x_offset < LEVEL_LEN {
-        commands.spawn((
-            Sprite::from_image(background_image.0.clone()),
-            Transform::from_xyz(x_offset, 0., 0.),
-            Background,
-        ));
+    let mut y_offset = 0.;
+    while y_offset < LEVEL_H {
+        let mut x_offset = 0.;
+        while x_offset < LEVEL_LEN {
+            commands.spawn((
+                Sprite::from_image(background_image.0.clone()),
+                Transform::from_xyz(x_offset, y_offset, 0.),
+                Background,
+            ));
 
-        x_offset += WIN_W;
+            x_offset += WIN_W;
+        }
+
+        y_offset += WIN_H;
     }
 
     let mut i = 0;
