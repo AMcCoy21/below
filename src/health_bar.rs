@@ -17,6 +17,9 @@ const EMPTY_COLOR: Color = Color::srgb(0.25, 0.15, 0.15);//empty health is dark 
 #[derive(Component)]// tag for each segment of the health bar
 struct HealthSegment(usize);// index of this segment in the health bar
 
+#[derive(Component)]
+struct HealthBar;
+
 //the player starts off with full health, so we can spawn the full health bar at the start of the game
 //when the player takes damage, we can update the health bar to reflect the new health value.
 pub struct HealthBarPlugin;
