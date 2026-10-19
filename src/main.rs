@@ -7,6 +7,7 @@ mod level;
 mod loading;
 mod player;
 mod stats;
+mod health_bar;
 mod gerald;
 mod menus;
 mod proc_gen {
@@ -65,6 +66,7 @@ fn main() {
             camera::CameraPlugin,
             level::LevelPlugin,
             loading::LoadingPlugin,
+            health_bar::HealthBarPlugin,
             player::PlayerPlugin,
             gerald::GeraldPlugin,
             gun::GunPlugin,
