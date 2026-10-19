@@ -37,7 +37,7 @@ impl Plugin for MenuPlugin {
         )
         .add_systems(
             OnEnter(GameState::Mst),
-            setup_mst_placeholder,
+            setup_room_controls,
         )
         .add_systems(
             OnExit(GameState::MainMenu),
@@ -98,17 +98,6 @@ fn setup_triangulation_placeholder(mut commands: Commands) {
     spawn_menu(
         &mut commands,
         "Delaunay Triangulation",
-        &[
-            ("Back", GameState::ProcGenMenu),
-        ],
-    );
-}
-
-// MST screen
-fn setup_mst_placeholder(mut commands: Commands) {
-    spawn_menu(
-        &mut commands,
-        "Minimum Spanning Tree",
         &[
             ("Back", GameState::ProcGenMenu),
         ],
@@ -183,7 +172,7 @@ fn setup_basic_demo_controls(mut commands: Commands) {
     spawn_back_button(&mut commands, GameState::MainMenu);
 }
 
-// Small Back button over the generated room map
+// Small Back button over the generated room map 
 fn setup_room_controls(mut commands: Commands) {
     spawn_back_button(&mut commands, GameState::ProcGenMenu);
 }

@@ -12,6 +12,7 @@ mod gerald;
 mod menus;
 mod proc_gen {
     pub mod geometry;
+    pub mod mst;
     pub mod room_generation;
 }
 
@@ -73,6 +74,7 @@ fn main() {
             combat::CombatPlugin,
             menus::MenuPlugin,
             proc_gen::room_generation::RoomGenerationPlugin,
+            proc_gen::mst::MstPlugin,
         ))
         // Run the game
         .run();

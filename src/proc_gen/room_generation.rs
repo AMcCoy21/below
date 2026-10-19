@@ -33,7 +33,7 @@ impl SeededRng {
 }
 
 #[derive(Resource)]
-struct RoomWallImage(Handle<Image>);
+pub struct RoomWallImage(pub Handle<Image>);
 
 #[derive(Component)]
 pub struct RoomPreview;
@@ -146,7 +146,7 @@ pub fn map_rooms(seed: u64) -> RoomMap {
     map
 }
 
-fn map_preview(
+pub fn map_preview(
     map: &RoomMap,
     commands: &mut Commands,
     wall_image: &Handle<Image>,
@@ -193,7 +193,14 @@ fn setup_room_preview(
 ) {
     let map = map_rooms(42);
     map_preview(&map, &mut commands, &wall_image.0);
+    frame_camera(&map, window.into_inner(), camera);
+}
 
+pub fn frame_camera(
+    map: &RoomMap,
+    window: &Window,
+    camera: Single<(&mut Transform, &mut Projection), With<Camera2d>>,
+) {
     let world_width = map.width as f32 * 32.0;
     let world_height = map.height as f32 * 32.0;
 
