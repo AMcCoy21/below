@@ -3,6 +3,7 @@ use bevy::{prelude::*, window::PresentMode};
 mod level;
 mod loading;
 mod stats;
+mod health_bar;
 
 const TITLE: &str = "Below - Level Demo";
 const WIN_W: f32 = 1280.;
@@ -42,6 +43,7 @@ fn main() {
         .add_plugins((
             level::LevelPlugin,
             loading::LoadingPlugin,
+            health_bar::HealthBarPlugin,
         ))
         // Run the game
         .run();
