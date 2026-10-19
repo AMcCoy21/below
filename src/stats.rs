@@ -33,6 +33,7 @@ pub struct Hitbox(pub Vec2); // full width/height in world units
 pub struct HitCooldown(pub f32); // seconds of invincibility left
 
 pub const HIT_COOLDOWN: f32 = 1.0;//1 second of invincibility after getting hit
+pub const ENEMY_HIT_COOLDOWN: f32 = 0.5;
 
 // Starting values for each character, kept in one place so
 // nobody hardcodes numbers elsewhere. These are placeholders,
@@ -40,8 +41,9 @@ pub const HIT_COOLDOWN: f32 = 1.0;//1 second of invincibility after getting hit
 pub const PLAYER_HEALTH: f32 = 100.0;
 pub const PLAYER_DAMAGE: f32 = 10.0;
 pub const PLAYER_SPEED: f32 = 300.0;
+pub const PLAYER_STOMP_DAMAGE: f32 = 30.0;
 
-pub const GERALD_HEALTH: f32 = 10.0;
+pub const GERALD_HEALTH: f32 = 30.0;
 pub const GERALD_DAMAGE: f32 = 5.0;
 pub const GERALD_SPEED: f32 = 40.0;
 
@@ -81,4 +83,5 @@ pub const STRAIGHT_TEETH: EnemyStats = EnemyStats {
 };
 //straight teeth is invulnerable but it has a hitbox
 //because it can still be hit by the player, but it won't take damage unless hit by a powerup.
-commands.spawn((STRAIGHT_TEETH.bundle(), Invulnerable, Hitbox(Vec2::new(32., 32.))));
+//needs to be inside a spawn system:
+//commands.spawn((STRAIGHT_TEETH.bundle(), Invulnerable, Hitbox(Vec2::new(32., 32.)), HitCooldown::default()));
