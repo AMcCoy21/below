@@ -6,6 +6,16 @@ by The Knights of the Round Table
 
 Below is a 2D, run-and-gun Metroidvania game for PC where the player character must descend deeper into the Below, fighting enemies along the way, to reach an elevator to get back to the surface.
 
+**(Temporary) Controls:**
+
+U - Gerald state 0 (idle)
+
+I - Gerald state 1 (patrol)
+
+O - Gerald state 2 (chase)
+
+p - Gerald state 3 ("attack" (distance from player does not matter))
+
 ## Team Members
 
 **Advanced Topic Subteam 1: Procedural Generation**
