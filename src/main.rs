@@ -1,6 +1,8 @@
 use bevy::{prelude::*, window::PresentMode};
 
 mod camera;
+mod combat;
+mod gun;
 mod level;
 mod loading;
 mod player;
@@ -65,6 +67,8 @@ fn main() {
             loading::LoadingPlugin,
             player::PlayerPlugin,
             gerald::GeraldPlugin,
+            gun::GunPlugin,
+            combat::CombatPlugin,
             menus::MenuPlugin,
             proc_gen::room_generation::RoomGenerationPlugin,
         ))
