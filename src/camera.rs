@@ -16,7 +16,12 @@ pub struct CameraTarget;
 pub struct CameraPlugin;
 impl Plugin for CameraPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, setup_camera).add_systems(
+    app.add_systems(Startup, setup_camera)
+        .add_systems(
+            OnEnter(GameState::Playing),
+            reset_gameplay_camera,
+        )
+        .add_systems(
             Update,
             follow_target.run_if(in_state(GameState::Playing)),
         );
@@ -31,6 +36,20 @@ fn setup_camera(mut commands: Commands) {
             ..OrthographicProjection::default_2d()
         }),
     ));
+}
+
+fn reset_gameplay_camera(
+    camera: Single<(&mut Transform, &mut Projection), With<Camera2d>>,
+) {
+    let (mut transform, mut projection) = camera.into_inner();
+
+    // Return to the basic level's initial view.
+    transform.translation.x = 0.0;
+    transform.translation.y = 0.0;
+
+    if let Projection::Orthographic(orthographic) = &mut *projection {
+        orthographic.scale = CAMERA_SCALE;
+    }
 }
 
 fn follow_target(

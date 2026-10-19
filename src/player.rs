@@ -3,9 +3,14 @@ use bevy::prelude::*;
 use crate::{
     GameState, LEVEL_BOTTOM, LEVEL_LEFT, LEVEL_RIGHT, TILE_SIZE,
     camera::CameraTarget,
+    combat::blink_color,
+    gun::CursorWorld,
     level::Brick,
     loading::{LoadingAssets, despawn_with},
-    stats::{Damage, Health, MoveSpeed, PLAYER_DAMAGE, PLAYER_HEALTH, PLAYER_SPEED},
+    stats::{
+        Damage, HIT_COOLDOWN, Health, HitCooldown, Hitbox, MoveSpeed, PLAYER_DAMAGE,
+        PLAYER_HEALTH, PLAYER_SPEED,
+    },
 };
 
 const GRAVITY: f32 = 2000.;
@@ -24,6 +29,11 @@ const SPRITE_SCALE: f32 = 2.;
 
 const PLAYER_SIZE: Vec2 = Vec2::new(40., 64.);
 
+const FACING_DEADZONE: f32 = 4.;
+
+const HURT_TINT: Color = Color::srgb(1., 0.4, 0.4);
+const HURT_FLASH_TIME: f32 = 0.15;
+
 const SKIN: f32 = 0.01;
 
 #[derive(Component, Default)]
@@ -31,8 +41,14 @@ pub struct Player {
     pub vel: Vec2,
     pub grounded: bool,
     pub can_fastfall: bool,
+    pub facing: f32, // 1 = right, -1 = left
+    pub stun: f32,   // seconds of knockback left
     jump_buffer: f32,
 }
+
+// Run after this set to see the player's pose for the current frame
+#[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PlayerSystems;
 
 #[derive(Component, Deref, DerefMut)]
 struct AnimationTimer(Timer);
@@ -52,8 +68,9 @@ impl Plugin for PlayerPlugin {
             .add_systems(OnEnter(GameState::Playing), spawn_player)
             .add_systems(
                 Update,
-                (move_player, animate_player, damage_player, check_if_dead)
+                (move_player, face_cursor, animate_player, damage_player, tint_player)
                     .chain()
+                    .in_set(PlayerSystems)
                     .run_if(in_state(GameState::Playing)),
             )
             .add_systems(OnExit(GameState::Playing), despawn_with::<Player>);
@@ -66,8 +83,9 @@ fn load_player(
     mut layouts: ResMut<Assets<TextureAtlasLayout>>,
     mut loading_assets: ResMut<LoadingAssets>,
 ) {
-    let walk: Handle<Image> = asset_server.load("player/player_full_walk.png");
-    let jump: Handle<Image> = asset_server.load("player/player_full_jump.png");
+    // The gun is drawn separately in gun.rs
+    let walk: Handle<Image> = asset_server.load("player/player_body_walk.png");
+    let jump: Handle<Image> = asset_server.load("player/player_body_jump.png");
     loading_assets.0.push(walk.clone().untyped());
     loading_assets.0.push(jump.clone().untyped());
 
@@ -106,10 +124,15 @@ fn spawn_player(mut commands: Commands, sheet: Res<PlayerSheet>) {
         // Standing on the floor at the center of the first screen
         Transform::from_xyz(0., LEVEL_BOTTOM + TILE_SIZE + PLAYER_SIZE.y / 2., 2.)
             .with_scale(Vec3::splat(SPRITE_SCALE)),
-        Player::default(),
+        Player {
+            facing: 1.,
+            ..default()
+        },
         AnimationTimer(Timer::from_seconds(FRAME_TIME, TimerMode::Repeating)),
         Health::new(PLAYER_HEALTH),
         Damage(PLAYER_DAMAGE),
+        Hitbox(PLAYER_SIZE),
+        HitCooldown::default(),
         MoveSpeed(PLAYER_SPEED),
         CameraTarget,
     ));
@@ -132,7 +155,9 @@ fn move_player(
         dir += 1.;
     }
     let target = dir * speed.0;
-    if player.grounded {
+    if player.stun > 0. {
+        player.stun -= dt;
+    } else if player.grounded {
         player.vel.x = target;
     } else {
         let max_change = AIR_ACCEL * dt;
@@ -189,6 +214,17 @@ fn move_player(
         .clamp(LEVEL_LEFT + half_w, LEVEL_RIGHT - half_w);
 }
 
+fn face_cursor(cursor: Res<CursorWorld>, player: Single<(&Transform, &mut Player)>) {
+    let Some(cursor) = cursor.0 else {
+        return;
+    };
+    let (tf, mut player) = player.into_inner();
+    let dx = cursor.x - tf.translation.x;
+    if dx.abs() > FACING_DEADZONE {
+        player.facing = dx.signum();
+    }
+}
+
 fn animate_player(
     time: Res<Time>,
     sheet: Res<PlayerSheet>,
@@ -196,9 +232,7 @@ fn animate_player(
 ) {
     let (player, mut sprite, mut timer) = player.into_inner();
 
-    if player.vel.x != 0. {
-        sprite.flip_x = player.vel.x < 0.;
-    }
+    sprite.flip_x = player.facing < 0.;
 
     let (image, layout) = if player.grounded {
         (&sheet.walk, &sheet.walk_layout)
@@ -218,7 +252,9 @@ fn animate_player(
     } else if player.vel.x != 0. {
         timer.tick(time.delta());
         if timer.just_finished() {
-            atlas.index = (atlas.index + 1) % WALK_FRAMES;
+            // Play the walk cycle backwards when moving away from the cursor
+            let step = if player.vel.x * player.facing < 0. { WALK_FRAMES - 1 } else { 1 };
+            atlas.index = (atlas.index + step) % WALK_FRAMES;
         }
     } else {
         atlas.index = 0;
@@ -248,13 +284,15 @@ fn damage_player(
     }
 }
 
-fn check_if_dead(
-    player: Single<(&Health, &Player, &mut Sprite)>
+fn tint_player(
+    player: Single<(&Health, &HitCooldown, &mut Sprite), With<Player>>
 ) {
-    let (health, _player, mut sprite) = player.into_inner();
-    if health.current == 0. {
-        sprite.color = Color::srgb(1., 0., 0.);
-    }else{
-        sprite.color = Color::srgb(1., 1., 1.);
-    }
+    let (health, cooldown, mut sprite) = player.into_inner();
+    sprite.color = if health.current <= 0. {
+        Color::srgb(1., 0., 0.)
+    } else if cooldown.0 > HIT_COOLDOWN - HURT_FLASH_TIME {
+        HURT_TINT
+    } else {
+        blink_color(cooldown)
+    };
 }
