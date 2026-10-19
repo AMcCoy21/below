@@ -1,10 +1,13 @@
 use bevy::{prelude::*, window::PresentMode};
 
 mod camera;
+mod combat;
+mod gun;
 mod level;
 mod loading;
 mod player;
 mod stats;
+mod health_bar;
 mod gerald;
 mod menus;
 mod proc_gen {
@@ -64,8 +67,11 @@ fn main() {
             camera::CameraPlugin,
             level::LevelPlugin,
             loading::LoadingPlugin,
+            health_bar::HealthBarPlugin,
             player::PlayerPlugin,
             gerald::GeraldPlugin,
+            gun::GunPlugin,
+            combat::CombatPlugin,
             menus::MenuPlugin,
             proc_gen::room_generation::RoomGenerationPlugin,
             proc_gen::mst::MstPlugin,
