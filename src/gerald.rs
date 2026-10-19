@@ -1,9 +1,10 @@
 use bevy::prelude::*;
 
 use crate :: {
-    GameState, LEVEL_BOTTOM, LEVEL_LEFT, LEVEL_RIGHT, TILE_SIZE,
+    GameState, LEVEL_BOTTOM, TILE_SIZE,
+    combat::HitFlashImage,
     loading::{ LoadingAssets, despawn_with },
-    stats::{ Health, MoveSpeed, GERALD_HEALTH, GERALD_DAMAGE, GERALD_SPEED },
+    stats::{ GERALD, HitCooldown, Hitbox, MoveSpeed },
 };
 
 const SPRITE_SCALE: f32 = 2.;
@@ -18,6 +19,7 @@ pub struct Gerald {
 #[derive(Resource)]
 struct GeraldSheet {
     idle: Handle<Image>,
+    hit: Handle<Image>,
 }
 
 pub struct GeraldPlugin;
@@ -36,9 +38,11 @@ fn load_gerald(
     mut loading_assets: ResMut<LoadingAssets>,
 ) {
     let idle: Handle<Image> = asset_server.load("enemy/gerald_front.png");
+    let hit: Handle<Image> = asset_server.load("enemy/gerald_hit.png");
     loading_assets.0.push(idle.clone().untyped());
+    loading_assets.0.push(hit.clone().untyped());
 
-    commands.insert_resource(GeraldSheet {idle});
+    commands.insert_resource(GeraldSheet {idle, hit});
 }
 
 fn spawn_gerald(mut commands: Commands, sheet: Res<GeraldSheet>) {
@@ -47,8 +51,13 @@ fn spawn_gerald(mut commands: Commands, sheet: Res<GeraldSheet>) {
         Transform::from_xyz(128., LEVEL_BOTTOM + TILE_SIZE + GERALD_SIZE.y / 2., 2.)
             .with_scale(Vec3::splat(SPRITE_SCALE)),
         Gerald::default(),
-        Health::new(GERALD_HEALTH),
-        MoveSpeed(GERALD_SPEED),
+        GERALD.bundle(),
+        Hitbox(GERALD_SIZE),
+        HitCooldown::default(),
+        HitFlashImage {
+            normal: sheet.idle.clone(),
+            flash: sheet.hit.clone(),
+        },
     ));
 }
 
