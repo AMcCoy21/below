@@ -33,7 +33,7 @@ impl Plugin for MenuPlugin {
         )
         .add_systems(
             OnEnter(GameState::Triangulation),
-            setup_triangulation_placeholder,
+            setup_room_controls,
         )
         .add_systems(
             OnEnter(GameState::Mst),

@@ -10,6 +10,8 @@ mod menus;
 mod proc_gen {
     pub mod geometry;
     pub mod room_generation;
+    pub mod triangulation_helpers;
+    pub mod triangulation_generation;
 }
 
 const TITLE: &str = "Below - Level Demo";
@@ -67,6 +69,7 @@ fn main() {
             gerald::GeraldPlugin,
             menus::MenuPlugin,
             proc_gen::room_generation::RoomGenerationPlugin,
+            proc_gen::triangulation_generation::TriangulationPlugin
         ))
         // Run the game
         .run();
