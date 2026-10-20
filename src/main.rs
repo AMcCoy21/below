@@ -76,7 +76,7 @@ fn main() {
             combat::CombatPlugin,
             menus::MenuPlugin,
             proc_gen::room_generation::RoomGenerationPlugin,
-            proc_gen::triangulation_generation::TriangulationPlugin
+            proc_gen::triangulation_generation::TriangulationPlugin,
             proc_gen::mst::MstPlugin,
         ))
         // Run the game

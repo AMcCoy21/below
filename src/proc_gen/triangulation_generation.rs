@@ -30,7 +30,7 @@ pub fn triangulate(points: &Vec<Point>) -> Vec<Edge> {
 
     let mut result_edges = Vec::new();
 
-    for i in (0..edges.len()) {
+    for i in 0..edges.len() {
         let start = match edges[i].data {
             Some(point) => point,
             None => continue,
