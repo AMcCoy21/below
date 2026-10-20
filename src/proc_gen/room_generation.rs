@@ -153,12 +153,20 @@ pub fn map_preview(
 ) {
     const TILE_SIZE: f32 = 32.0;
 
-    let room_color = Color::srgb(40.0/255.0, 52.0/255.0, 64.0/255.0,);
+    let mut room_color = Color::srgb(40.0/255.0, 52.0/255.0, 64.0/255.0,);
+    let mut yellow = true;
 
     for y in 0..map.height {
         for x in 0..map.width {
             let index = y * map.width + x;
-            
+
+            if yellow { room_color = Color::srgb(1.0, 1.0, 1.0);} //checkpoint
+            if(x > 20 && 30 > x){
+                yellow = true;
+            }else{
+                yellow = false;
+            }
+
             let sprite = match &map.tiles[index] {
                 TileType::Wall => Sprite {
                     image: wall_image.clone(),
@@ -181,6 +189,7 @@ pub fn map_preview(
                 ),
                 RoomPreview,
             ));      
+            room_color = Color::srgb(40.0/255.0, 52.0/255.0, 64.0/255.0,);
         }
     }
 }
