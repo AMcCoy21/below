@@ -25,51 +25,62 @@ struct HealthBar;
 pub struct HealthBarPlugin;
 impl Plugin for HealthBarPlugin {
     fn build(&self, app: &mut App) {
-        app
-            .add_systems(Update, update_health_bar.run_if(in_state(GameState::Playing)))
-            .add_systems(Update, update_health_bar)
+        app.add_systems(OnEnter(GameState::Playing), spawn_health_bar)
+            .add_systems(
+                Update,
+                update_health_bar.run_if(in_state(GameState::Playing)),
+            )
             .add_systems(OnExit(GameState::Playing), despawn_with::<HealthBar>);
     }
-
 }
 //spawn the health bar when the player spawns, and despawn it when the player dies
 fn spawn_health_bar(mut commands: Commands) {
-        commands// this spawns the health bar as a node with absolute positioning, and add the HealthBar component to it
+    info!("spawning health bar");
+    commands
         .spawn((
             Node {
                 position_type: PositionType::Absolute,
-                left: Val::Px(BAR_MARGIN),
+                right: Val::Px(BAR_MARGIN),
                 top: Val::Px(BAR_MARGIN),
-                column_gap: Val::Px(SEGMENT_GAP),//spacing for the segments
+                column_gap: Val::Px(SEGMENT_GAP),
                 ..default()
             },
             HealthBar,
         ))
-        // this spawns each segment of the health bar as a child of the health bar node
         .with_children(|bar| {
             for i in 0..SEGMENT_COUNT {
+                // outer box: the dark "empty" background of one segment
                 bar.spawn((
                     Node {
                         width: Val::Px(SEGMENT_SIZE.x),
                         height: Val::Px(SEGMENT_SIZE.y),
                         ..default()
                     },
-                    BackgroundColor(FULL_COLOR),
-                    HealthSegment(i),
-                ));
+                    BackgroundColor(EMPTY_COLOR),
+                ))
+                // inner box: the pink fill that shrinks as health drops
+                .with_children(|segment| {
+                    segment.spawn((
+                        Node {
+                            width: Val::Percent(100.),
+                            height: Val::Percent(100.),
+                            ..default()
+                        },
+                        BackgroundColor(FULL_COLOR),
+                        HealthSegment(i),
+                    ));
+                });
             }
-    });
+        });
 }
 
 fn update_health_bar(
     player: Single<&Health, With<Player>>,
-    mut segments: Query<(&HealthSegment, &mut BackgroundColor)>,
-)
-{
+    mut fills: Query<(&HealthSegment, &mut Node)>,
+) {
     let per_segment = PLAYER_HEALTH / SEGMENT_COUNT as f32;
-    for (segment, mut color) in &mut segments {
-        let filled = player.current > segment.0 as f32 * per_segment;// if the player's current health is greater than the health represented by this segment, it should be filled
-        color.0 = if filled { FULL_COLOR } else { EMPTY_COLOR };// this will set the color of the segment based on whether it should be filled or empty
-
+    for (segment, mut node) in &mut fills {
+        let fill = ((player.current - segment.0 as f32 * per_segment) / per_segment).clamp(0., 1.);
+        node.width = Val::Percent(fill * 100.);
     }
 }
