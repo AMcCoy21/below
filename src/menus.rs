@@ -11,6 +11,15 @@ use crate::{
 #[derive(Component)]
 struct MenuUi;
 
+#[derive(Component)]
+struct SlideImage;
+
+#[derive(Resource)]
+struct AISlideshow {
+    current_slide: usize,
+    slides: Vec<String>,
+}
+
 pub struct MenuPlugin;
 
 impl Plugin for MenuPlugin {
@@ -40,6 +49,10 @@ impl Plugin for MenuPlugin {
             setup_room_controls,
         )
         .add_systems(
+            OnEnter(GameState::AISlideshow),
+            (setup_slideshow_controls, spawn_slideshow,).chain(),
+        )
+        .add_systems(
             OnExit(GameState::MainMenu),
             despawn_with::<MenuUi>,
         )
@@ -63,7 +76,12 @@ impl Plugin for MenuPlugin {
             OnExit(GameState::Mst),
             despawn_with::<MenuUi>,
         )
-        .add_systems(Update, escape_navigation);
+        .add_systems(
+            OnExit(GameState::AISlideshow),
+            (despawn_with::<MenuUi>,
+            despawn_with::<SlideImage>,).chain(),
+        )
+        .add_systems(Update, (escape_navigation, next_slide.run_if(in_state(GameState::AISlideshow))));
     }
 }
 
@@ -75,6 +93,7 @@ fn setup_main_menu(mut commands: Commands) {
         &[
             ("Basic Demo", GameState::Playing),
             ("Proc Gen", GameState::ProcGenMenu),
+            ("Slideshow", GameState::AISlideshow),
         ],
     );
 }
@@ -177,6 +196,11 @@ fn setup_room_controls(mut commands: Commands) {
     spawn_back_button(&mut commands, GameState::ProcGenMenu);
 }
 
+// Small Back button over the AI slidehow
+fn setup_slideshow_controls(mut commands: Commands) {
+    spawn_back_button(&mut commands, GameState::MainMenu);
+}
+
 fn spawn_back_button(
     commands: &mut Commands,
     destination: GameState,
@@ -225,7 +249,7 @@ fn escape_navigation(
     }
 
     let destination = match state.get() {
-        GameState::Playing | GameState::ProcGenMenu => {
+        GameState::Playing | GameState::ProcGenMenu | GameState:: AISlideshow => {
             GameState::MainMenu
         }
 
@@ -239,4 +263,41 @@ fn escape_navigation(
     next_state.set(destination);
 }
 
+fn spawn_slideshow(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+) {
+    let first_slide = asset_server.load("ai_slideshow/AmoogDecisionTree.png");
 
+    commands.spawn((
+        ImageNode::new(first_slide),
+        Node {
+            width: percent(100),
+            height: percent(100),
+            ..default()
+        },
+        SlideImage,
+    ));
+}
+
+fn next_slide(
+    keyboard: Res<ButtonInput<KeyCode>>,
+    mut images: Query<&mut ImageNode, With<SlideImage>>,
+    asset_server: Res<AssetServer>,
+    mut current_slide: Local<usize>,
+) {
+    if keyboard.just_pressed(KeyCode::Space) {
+        *current_slide = (*current_slide + 1) % 3;
+
+        let slide_path = match *current_slide {
+            0 => "ai_slideshow/AmoogDecisionTree.png",
+            1 => "ai_slideshow/GeraldDecisionTree.png",
+            2 => "ai_slideshow/HivemindDecisionTree.png",
+            _ => unreachable!(),
+        };
+
+        if let Ok(mut image) = images.single_mut() {
+            image.image = asset_server.load(slide_path);
+        }
+    }
+}

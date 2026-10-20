@@ -43,6 +43,7 @@ enum GameState {
     ProcGenMenu,
     Triangulation,
     Mst,
+    AISlideshow,
 }
 
 fn main() {
