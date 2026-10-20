@@ -83,4 +83,4 @@ pub const STRAIGHT_TEETH: EnemyStats = EnemyStats {
 };
 //straight teeth is invulnerable but it has a hitbox
 //because it can still be hit by the player, but it won't take damage unless hit by a powerup.
-// commands.spawn((STRAIGHT_TEETH.bundle(), Invulnerable, Hitbox(Vec2::new(32., 32.))));
+//commands.spawn((STRAIGHT_TEETH.bundle(), Invulnerable, Hitbox(Vec2::new(32., 32.))));
