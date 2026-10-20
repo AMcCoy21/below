@@ -33,12 +33,12 @@ fn load_level(
     asset_server: Res<AssetServer>,
     mut loading_assets: ResMut<LoadingAssets>,
 ) {
-    let bg_texture_handle = asset_server.load("slideshow/JakeBiondolillo.png");
+    let bg_texture_handle = asset_server.load("backgrounds/noisey_background1.png");
 
     loading_assets.0.push(bg_texture_handle.clone().untyped());
     commands.insert_resource(BackgroundImage(bg_texture_handle));
 
-    let brick_image_handle: Handle<Image> = asset_server.load("tiles/basic_stone_sprite.png");
+    let brick_image_handle: Handle<Image> = asset_server.load("tiles/rocky_stone_cold_16x16.png");
     loading_assets.0.push(brick_image_handle.clone().untyped());
 
     commands.insert_resource(BrickImage(brick_image_handle));
