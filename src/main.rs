@@ -1,14 +1,18 @@
 use bevy::{prelude::*, window::PresentMode};
 
 mod camera;
+mod combat;
+mod gun;
 mod level;
 mod loading;
 mod player;
 mod stats;
+mod health_bar;
 mod gerald;
 mod menus;
 mod proc_gen {
     pub mod geometry;
+    pub mod mst;
     pub mod room_generation;
     pub mod triangulation_helpers;
     pub mod triangulation_generation;
@@ -65,11 +69,15 @@ fn main() {
             camera::CameraPlugin,
             level::LevelPlugin,
             loading::LoadingPlugin,
+            health_bar::HealthBarPlugin,
             player::PlayerPlugin,
             gerald::GeraldPlugin,
+            gun::GunPlugin,
+            combat::CombatPlugin,
             menus::MenuPlugin,
             proc_gen::room_generation::RoomGenerationPlugin,
             proc_gen::triangulation_generation::TriangulationPlugin
+            proc_gen::mst::MstPlugin,
         ))
         // Run the game
         .run();
