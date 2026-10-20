@@ -161,7 +161,9 @@ pub fn map_preview(
             let index = y * map.width + x;
 
             if yellow { room_color = Color::srgb(1.0, 1.0, 1.0);} //checkpoint
-            if(y > 5){
+            if(x > 20 && 30 > x){
+                yellow = true;
+            }else{
                 yellow = false;
             }
 
