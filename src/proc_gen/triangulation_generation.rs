@@ -4,7 +4,7 @@ use crate::{
     loading::despawn_with,
     proc_gen::{
         geometry::{Edge, Point},
-        room_generation::{frame_camera, map_preview, map_rooms, RoomPreview, RoomWallImage},
+        room_generation::{frame_camera, map_preview, map_rooms, RoomWallImage},
         triangulation_helpers::*,
     },
 };

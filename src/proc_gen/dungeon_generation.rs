@@ -3,6 +3,7 @@ use crate::proc_gen::{
     room_generation::{RoomMap, map_rooms},
     triangulation_generation::triangulate,
     mst::minimum_spanning_tree,
+    hallway_gen::carve_hallways,
 };
 
 pub struct DungeonLayout {
@@ -15,7 +16,7 @@ pub struct DungeonLayout {
 
 pub fn generate_dungeon(seed: u64) -> DungeonLayout {
     // Generate the rooms
-    let map = map_rooms(seed);
+    let mut map = map_rooms(seed);
 
     // Get the center all rooms
     let points: Vec<Point> = map.rooms.iter().map(|room| {
@@ -30,6 +31,9 @@ pub fn generate_dungeon(seed: u64) -> DungeonLayout {
 
     // Select edges for hallways
     let selected_edges = mst_edges.clone();
+
+    // Carve hallways
+    carve_hallways(&mut map, &selected_edges);
 
     DungeonLayout {
         map,
