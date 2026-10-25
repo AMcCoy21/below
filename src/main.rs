@@ -10,6 +10,7 @@ mod stats;
 mod health_bar;
 mod gerald;
 mod menus;
+mod sound;
 mod proc_gen {
     pub mod geometry;
     pub mod mst;
@@ -78,6 +79,7 @@ fn main() {
             gun::GunPlugin,
             combat::CombatPlugin,
             menus::MenuPlugin,
+            sound::SoundPlugin,
             proc_gen::room_generation::RoomGenerationPlugin,
             proc_gen::triangulation_generation::TriangulationPlugin,
             proc_gen::mst::MstPlugin,
