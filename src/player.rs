@@ -7,6 +7,7 @@ use crate::{
     gun::CursorWorld,
     level::Brick,
     loading::{LoadingAssets, despawn_with},
+    sound::{SoundEvent, SoundKind},
     stats::{
         Damage, HIT_COOLDOWN, Health, HitCooldown, Hitbox, MoveSpeed, PLAYER_DAMAGE,
         PLAYER_HEALTH, PLAYER_SPEED,
@@ -25,6 +26,8 @@ const FRAME_SIZE: u32 = 32;
 const WALK_FRAMES: usize = 4;
 const JUMP_FRAMES: u32 = 2;
 const FRAME_TIME: f32 = 0.1;
+// Walk frames where a foot hits the ground
+const STEP_FRAMES: [usize; 2] = [0, 2];
 const SPRITE_SCALE: f32 = 2.;
 
 const PLAYER_SIZE: Vec2 = Vec2::new(40., 64.);
@@ -143,6 +146,7 @@ fn move_player(
     keys: Res<ButtonInput<KeyCode>>,
     player: Single<(&mut Transform, &mut Player, &MoveSpeed)>,
     bricks: Query<&Transform, (With<Brick>, Without<Player>)>,
+    mut sounds: MessageWriter<SoundEvent>,
 ) {
     let (mut tf, mut player, speed) = player.into_inner();
     let dt = time.delta_secs().min(1. / 30.);
@@ -171,6 +175,7 @@ fn move_player(
     if player.grounded && player.jump_buffer > 0. {
         player.vel.y = JUMP_SPEED;
         player.jump_buffer = 0.;
+        sounds.write(SoundEvent::new(tf.translation.truncate(), SoundKind::Jump));
     }
     player.jump_buffer -= dt;
     if !player.grounded && player.can_fastfall && keys.any_pressed([KeyCode::KeyS, KeyCode::ArrowDown]) {
@@ -228,9 +233,10 @@ fn face_cursor(cursor: Res<CursorWorld>, player: Single<(&Transform, &mut Player
 fn animate_player(
     time: Res<Time>,
     sheet: Res<PlayerSheet>,
-    player: Single<(&Player, &mut Sprite, &mut AnimationTimer)>,
+    player: Single<(&Player, &Transform, &mut Sprite, &mut AnimationTimer)>,
+    mut sounds: MessageWriter<SoundEvent>,
 ) {
-    let (player, mut sprite, mut timer) = player.into_inner();
+    let (player, tf, mut sprite, mut timer) = player.into_inner();
 
     sprite.flip_x = player.facing < 0.;
 
@@ -255,6 +261,10 @@ fn animate_player(
             // Play the walk cycle backwards when moving away from the cursor
             let step = if player.vel.x * player.facing < 0. { WALK_FRAMES - 1 } else { 1 };
             atlas.index = (atlas.index + step) % WALK_FRAMES;
+            if STEP_FRAMES.contains(&atlas.index) {
+                let feet = tf.translation.truncate() - Vec2::Y * PLAYER_SIZE.y / 2.;
+                sounds.write(SoundEvent::new(feet, SoundKind::Step));
+            }
         }
     } else {
         atlas.index = 0;

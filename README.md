@@ -16,6 +16,8 @@ O - Gerald state 2 (chase)
 
 p - Gerald state 3 ("attack" (distance from player does not matter))
 
+H - Toggle sound event popups (speaker icons)
+
 ## Team Members
 
 **Advanced Topic Subteam 1: Procedural Generation**
