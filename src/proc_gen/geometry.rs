@@ -6,7 +6,18 @@ pub struct Point {
     pub y: f64,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct Edge {
     pub a: usize,
     pub b: usize,
+}
+
+impl Edge {
+    pub fn new(a: usize, b: usize) -> Self {
+        if a < b {
+            Self { a, b }
+        } else {
+            Self { a: b, b: a }
+        }
+    }
 }

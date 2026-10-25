@@ -5,6 +5,8 @@ use crate::{
     proc_gen::{
         geometry::{Edge, Point},
         room_generation::{RoomPreview, RoomWallImage, frame_camera, map_preview, map_rooms},
+        triangulation_generation::triangulate,
+        dungeon_generation::generate_dungeon,
     },
 };
 
@@ -101,24 +103,17 @@ fn setup_mst_preview(
     window: Single<&Window, With<bevy::window::PrimaryWindow>>,
     camera: Single<(&mut Transform, &mut Projection), With<Camera2d>>,
 ) {
-    let map = map_rooms(42);
-    map_preview(&map, &mut commands, &wall_image.0);
+    let dungeon = generate_dungeon(42);
 
-    let points: Vec<Point> = map
-        .rooms
-        .iter()
-        .map(|room| {
-            let (x, y) = room.center();
-            Point { x, y }
-        })
-        .collect();
+    map_preview(&dungeon.map, &mut commands, &wall_image.0);
 
-    let tree = minimum_spanning_tree(&points, &all_edges(&points));
+    let points = &dungeon.points;
+    let tree = &dungeon.mst_edges;
 
     let line_color = Color::srgb(0.95, 0.75, 0.2);
 
     // Draw each edge as a thin rotated rectangle between the two room centers
-    for edge in &tree {
+    for edge in tree {
         let start = to_world(&points[edge.a]);
         let end = to_world(&points[edge.b]);
         let delta = end - start;
@@ -137,7 +132,7 @@ fn setup_mst_preview(
     }
 
     // Draw a dot on each room center
-    for point in &points {
+    for point in points.iter() {
         let position = to_world(point);
         commands.spawn((
             Sprite {
@@ -150,7 +145,7 @@ fn setup_mst_preview(
         ));
     }
 
-    frame_camera(&map, window.into_inner(), camera);
+    frame_camera(&dungeon.map, window.into_inner(), camera);
 }
 
 pub struct MstPlugin;
