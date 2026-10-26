@@ -26,8 +26,6 @@ const FRAME_SIZE: u32 = 32;
 const WALK_FRAMES: usize = 4;
 const JUMP_FRAMES: u32 = 2;
 const FRAME_TIME: f32 = 0.1;
-// Walk frames where a foot hits the ground
-const STEP_FRAMES: [usize; 2] = [0, 2];
 const SPRITE_SCALE: f32 = 2.;
 
 const PLAYER_SIZE: Vec2 = Vec2::new(40., 64.);
@@ -39,6 +37,11 @@ const HURT_FLASH_TIME: f32 = 0.15;
 
 const SKIN: f32 = 0.01;
 
+// Seconds between footstep sounds while walking
+const STEP_COOLDOWN: f32 = 0.6;
+// Minimum fall speed for touching down to count as a landing sound
+const LAND_SOUND_SPEED: f32 = 200.;
+
 #[derive(Component, Default)]
 pub struct Player {
     pub vel: Vec2,
@@ -47,6 +50,7 @@ pub struct Player {
     pub facing: f32, // 1 = right, -1 = left
     pub stun: f32,   // seconds of knockback left
     jump_buffer: f32,
+    step_cooldown: f32,
 }
 
 // Run after this set to see the player's pose for the current frame
@@ -175,7 +179,6 @@ fn move_player(
     if player.grounded && player.jump_buffer > 0. {
         player.vel.y = JUMP_SPEED;
         player.jump_buffer = 0.;
-        sounds.write(SoundEvent::new(tf.translation.truncate(), SoundKind::Jump));
     }
     player.jump_buffer -= dt;
     if !player.grounded && player.can_fastfall && keys.any_pressed([KeyCode::KeyS, KeyCode::ArrowDown]) {
@@ -198,6 +201,8 @@ fn move_player(
         }
     }
 
+    let was_grounded = player.grounded;
+    let fall_speed = -player.vel.y;
     tf.translation.y += player.vel.y * dt;
     player.grounded = false;
     for brick in &bricks {
@@ -210,6 +215,17 @@ fn move_player(
     }
     if player.grounded == true {
         player.can_fastfall = true;
+    }
+
+    let feet = tf.translation.truncate() - Vec2::Y * PLAYER_SIZE.y / 2.;
+    if !was_grounded && player.grounded && fall_speed > LAND_SOUND_SPEED {
+        sounds.write(SoundEvent::new(feet, SoundKind::Land));
+    }
+    // First step sounds right away, then one per cooldown while walking
+    player.step_cooldown = (player.step_cooldown - dt).max(0.);
+    if player.grounded && player.vel.x != 0. && player.step_cooldown == 0. {
+        sounds.write(SoundEvent::new(feet, SoundKind::Step));
+        player.step_cooldown = STEP_COOLDOWN;
     }
     // Keep the player inside the level
     let half_w = PLAYER_SIZE.x / 2.;
@@ -233,10 +249,9 @@ fn face_cursor(cursor: Res<CursorWorld>, player: Single<(&Transform, &mut Player
 fn animate_player(
     time: Res<Time>,
     sheet: Res<PlayerSheet>,
-    player: Single<(&Player, &Transform, &mut Sprite, &mut AnimationTimer)>,
-    mut sounds: MessageWriter<SoundEvent>,
+    player: Single<(&Player, &mut Sprite, &mut AnimationTimer)>,
 ) {
-    let (player, tf, mut sprite, mut timer) = player.into_inner();
+    let (player, mut sprite, mut timer) = player.into_inner();
 
     sprite.flip_x = player.facing < 0.;
 
@@ -261,10 +276,6 @@ fn animate_player(
             // Play the walk cycle backwards when moving away from the cursor
             let step = if player.vel.x * player.facing < 0. { WALK_FRAMES - 1 } else { 1 };
             atlas.index = (atlas.index + step) % WALK_FRAMES;
-            if STEP_FRAMES.contains(&atlas.index) {
-                let feet = tf.translation.truncate() - Vec2::Y * PLAYER_SIZE.y / 2.;
-                sounds.write(SoundEvent::new(feet, SoundKind::Step));
-            }
         }
     } else {
         atlas.index = 0;

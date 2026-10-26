@@ -16,7 +16,7 @@ const POPUP_OFFSET: Vec2 = Vec2::new(0., 56.); // above the player's head
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum SoundKind {
     Step,
-    Jump,
+    Land,
     Shot,
 }
 
@@ -25,7 +25,7 @@ impl SoundKind {
     pub fn loudness(self) -> f32 {
         match self {
             SoundKind::Step => 150.,
-            SoundKind::Jump => 300.,
+            SoundKind::Land => 300.,
             SoundKind::Shot => 600.,
         }
     }
@@ -34,7 +34,7 @@ impl SoundKind {
     fn icon_index(self) -> usize {
         match self {
             SoundKind::Step => 0,
-            SoundKind::Jump => 1,
+            SoundKind::Land => 1,
             SoundKind::Shot => 2,
         }
     }
