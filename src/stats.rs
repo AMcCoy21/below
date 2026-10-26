@@ -32,6 +32,9 @@ pub struct Hitbox(pub Vec2); // full width/height in world units
 #[derive(Component, Default)]
 pub struct HitCooldown(pub f32); // seconds of invincibility left
 
+#[derive(Component)]
+pub struct Stompable;   // differentiates stompable enemies (Gerald) from the others
+
 pub const HIT_COOLDOWN: f32 = 1.0;//1 second of invincibility after getting hit
 pub const ENEMY_HIT_COOLDOWN: f32 = 0.5;
 
@@ -65,7 +68,7 @@ impl EnemyStats {
 }
 
 pub const HIVEMIND: EnemyStats = EnemyStats {
-    health: 30.0,
+    health: 10.0,
     damage: 5.0,
     speed: 60.0,
 };
