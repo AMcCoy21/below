@@ -87,6 +87,7 @@ fn triangulation_preview(
         let angle = dy.atan2(dx);
 
         commands.spawn((
+            TriangulationPreview,
             Sprite {
                 color: Color::srgb(1.0, 0.0, 0.0),
                 custom_size: Some(Vec2::new(length, 3.0)),
