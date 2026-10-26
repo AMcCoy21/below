@@ -1,3 +1,4 @@
+use rand::{rngs::StdRng, Rng, SeedableRng};
 use crate::proc_gen::{
     geometry::{Edge, Point},
     room_generation::{RoomMap, map_rooms},
@@ -5,6 +6,7 @@ use crate::proc_gen::{
     mst::minimum_spanning_tree,
     hallway_gen::carve_hallways,
 };
+
 
 pub struct DungeonLayout {
     pub map: RoomMap,
@@ -30,8 +32,17 @@ pub fn generate_dungeon(seed: u64) -> DungeonLayout {
     let mst_edges = minimum_spanning_tree(&points, &delauney_edges);
 
     // Select edges for hallways
-    let selected_edges = mst_edges.clone();
 
+    let mut selected_edges = mst_edges.clone();
+
+    for edge in &delauney_edges {
+        let in_mst = mst_edges.iter().any(|e| e.a == edge.a && e.b == edge.b);
+        if !in_mst && rand::random::<f32>() >= 0.8 {
+            selected_edges.push(*edge);
+        }
+    }
+
+    
     // Carve hallways
     carve_hallways(&mut map, &selected_edges);
 
