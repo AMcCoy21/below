@@ -10,12 +10,15 @@ mod stats;
 mod health_bar;
 mod gerald;
 mod menus;
+mod sound;
 mod proc_gen {
     pub mod geometry;
     pub mod mst;
     pub mod room_generation;
     pub mod triangulation_helpers;
     pub mod triangulation_generation;
+    pub mod dungeon_generation;
+    pub mod hallway_gen;
 }
 
 const TITLE: &str = "Below - Level Demo";
@@ -76,6 +79,7 @@ fn main() {
             gun::GunPlugin,
             combat::CombatPlugin,
             menus::MenuPlugin,
+            sound::SoundPlugin,
             proc_gen::room_generation::RoomGenerationPlugin,
             proc_gen::triangulation_generation::TriangulationPlugin,
             proc_gen::mst::MstPlugin,

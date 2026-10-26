@@ -7,6 +7,7 @@ use crate::{
     combat::Bullet,
     loading::LoadingAssets,
     player::{Player, PlayerSystems},
+    sound::{SoundEvent, SoundKind},
     stats::Damage,
 };
 
@@ -132,6 +133,7 @@ fn fire_gun(
     mouse: Res<ButtonInput<MouseButton>>,
     damage: Single<&Damage, With<Player>>,
     gun: Single<&mut Gun>,
+    mut sounds: MessageWriter<SoundEvent>,
 ) {
     let mut gun = gun.into_inner();
     gun.cooldown = (gun.cooldown - time.delta_secs()).max(0.);
@@ -154,4 +156,5 @@ fn fire_gun(
             life: BULLET_LIFETIME,
         },
     ));
+    sounds.write(SoundEvent::new(gun.muzzle, SoundKind::Shot));
 }
