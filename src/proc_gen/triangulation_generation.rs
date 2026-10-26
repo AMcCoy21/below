@@ -4,7 +4,7 @@ use crate::{
     loading::despawn_with,
     proc_gen::{
         geometry::{Edge, Point},
-        room_generation::{frame_camera, map_preview, map_rooms, RoomPreview, RoomWallImage},
+        room_generation::{frame_camera, map_preview, map_rooms, RoomWallImage},
         triangulation_helpers::*,
     },
 };
@@ -56,11 +56,15 @@ pub fn triangulate(points: &Vec<Point>) -> Vec<Edge> {
         }
 
         if a_found && b_found {
-            result_edges.push(Edge{a,b});
+            result_edges.push(Edge::new(a, b));
         }
     }
 
-    return result_edges;
+    // Sort and deduplicate the edges to remove any duplicates
+    result_edges.sort_unstable_by_key(|edge| (edge.a, edge.b));
+    result_edges.dedup();
+
+    result_edges
 }
 
 fn triangulation_preview(
@@ -83,6 +87,7 @@ fn triangulation_preview(
         let angle = dy.atan2(dx);
 
         commands.spawn((
+            TriangulationPreview,
             Sprite {
                 color: Color::srgb(1.0, 0.0, 0.0),
                 custom_size: Some(Vec2::new(length, 3.0)),
