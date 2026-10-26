@@ -9,6 +9,8 @@ mod player;
 mod stats;
 mod health_bar;
 mod gerald;
+mod hivemind;
+mod hivemind_controller;
 mod menus;
 mod proc_gen {
     pub mod geometry;
@@ -73,6 +75,8 @@ fn main() {
             health_bar::HealthBarPlugin,
             player::PlayerPlugin,
             gerald::GeraldPlugin,
+            hivemind::HivemindPlugin,
+            hivemind_controller::HivemindControllerPlugin,
             gun::GunPlugin,
             combat::CombatPlugin,
             menus::MenuPlugin,

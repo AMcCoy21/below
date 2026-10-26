@@ -5,7 +5,7 @@ use crate :: {
     GameState, LEVEL_BOTTOM, TILE_SIZE,
     combat::HitFlashImage,
     loading::{ LoadingAssets, despawn_with },
-    stats::{ GERALD, GERALD_SPEED, HitCooldown, Hitbox, MoveSpeed },
+    stats::{ GERALD, GERALD_SPEED, HitCooldown, Hitbox, MoveSpeed, Stompable, },
     player::Player,
 };
 
@@ -113,6 +113,7 @@ fn spawn_gerald(mut commands: Commands, sheet: Res<GeraldSheet>) {
             direction: 1.,
         },
         GeraldState::default(),
+        Stompable,
     ));
 }
 
