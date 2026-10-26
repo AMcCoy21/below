@@ -162,7 +162,7 @@ pub fn map_preview(
 
             if yellow { room_color = Color::srgb(1.0, 1.0, 1.0);} //checkpoint
             if x > 20 && 30 > x {
-                yellow = true;
+                yellow = false;
             }else{
                 yellow = false;
             }
