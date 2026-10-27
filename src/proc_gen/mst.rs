@@ -4,7 +4,7 @@ use crate::{
     loading::despawn_with,
     proc_gen::{
         geometry::{Edge, Point},
-        room_generation::{RoomPreview, RoomWallImage, frame_camera, map_preview, map_rooms},
+        room_generation::{ProcGenSeed, RoomPreview, RoomWallImage, frame_camera, map_preview, map_rooms},
         triangulation_generation::triangulate,
         dungeon_generation::generate_dungeon,
     },
@@ -102,8 +102,9 @@ fn setup_mst_preview(
     wall_image: Res<RoomWallImage>,
     window: Single<&Window, With<bevy::window::PrimaryWindow>>,
     camera: Single<(&mut Transform, &mut Projection), With<Camera2d>>,
+    seed: Res<ProcGenSeed>,
 ) {
-    let dungeon = generate_dungeon(42);
+    let dungeon = generate_dungeon(seed.0);
 
     map_preview(&dungeon.map, &mut commands, &wall_image.0);
 

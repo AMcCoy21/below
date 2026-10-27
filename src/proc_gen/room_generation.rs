@@ -35,6 +35,18 @@ impl SeededRng {
 #[derive(Resource)]
 pub struct RoomWallImage(pub Handle<Image>);
 
+// Shared by all proc gen previews so each stage shows the same dungeon
+#[derive(Resource)]
+pub struct ProcGenSeed(pub u64);
+
+impl ProcGenSeed {
+    fn random() -> Self {
+        let seed = rand::random::<u64>();
+        info!("Proc gen seed: {seed}");
+        Self(seed)
+    }
+}
+
 #[derive(Component)]
 pub struct RoomPreview;
 
@@ -199,8 +211,9 @@ fn setup_room_preview(
     wall_image: Res<RoomWallImage>,
     window: Single<&Window, With<PrimaryWindow>>,
     camera: Single<(&mut Transform, &mut Projection), With<Camera2d>>,
+    seed: Res<ProcGenSeed>,
 ) {
-    let map = map_rooms(42);
+    let map = map_rooms(seed.0);
     map_preview(&map, &mut commands, &wall_image.0);
     frame_camera(&map, window.into_inner(), camera);
 }
@@ -231,7 +244,17 @@ pub struct RoomGenerationPlugin;
 
 impl Plugin for RoomGenerationPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, load_room)
+        app.insert_resource(ProcGenSeed::random())
+            .add_systems(Startup, load_room)
+            // New dungeon each time the demo is opened from the main menu,
+            // but not when backing out of a preview to the proc gen menu
+            .add_systems(
+                OnTransition {
+                    exited: GameState::MainMenu,
+                    entered: GameState::ProcGenMenu,
+                },
+                |mut commands: Commands| commands.insert_resource(ProcGenSeed::random()),
+            )
             .add_systems(
                 OnEnter(GameState::RoomGeneration),
                 setup_room_preview,
