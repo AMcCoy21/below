@@ -8,15 +8,18 @@ use crate :: {
     stats::{ GERALD, GERALD_SPEED, HitCooldown, Hitbox, MoveSpeed, Stompable, },
     player::Player,
 };
+use crate::{ sound::SoundEvent, stats::{ GERALD_SIGHT_RANGE, Health } };
 
 const SPRITE_SCALE: f32 = 2.;
 const GERALD_SIZE: Vec2 = Vec2::new(32., 32.);
+const ARRIVE_DISTANCE: f32 = 4.;
 
 #[derive(Component, Default)]
 pub struct Gerald {
     pub velocity: Vec2,
     pub grounded: bool,
     pub attack_timer: f32,
+    pub last_known: Option<Vec2>,
 }
 
 #[derive(Resource)]
@@ -60,6 +63,7 @@ impl Plugin for GeraldPlugin {
                 gerald_ai,
                 update_gerald_sprite,
             ))
+            .add_systems(Update, gerald_decision_tree.before(gerald_ai))
             .add_systems(OnExit(GameState::Playing), despawn_with::<Gerald>);
     }
 }
@@ -183,7 +187,7 @@ fn gerald_ai(
         // Chase - Gerald will follow player to where he sees them.
         // TODO: Can either be triggered by sight (near) or sound (further)
         GeraldState::Chase => {
-            let distance = player.translation.x - tf.translation.x;
+            let distance = gerald.last_known.unwrap_or(player.translation.truncate()).x - tf.translation.x;
 
             if distance > 0. {
                 gerald.velocity.x = GERALD_SPEED;
@@ -238,5 +242,49 @@ fn gerald_state_change(
 
     if keyboard.just_pressed(KeyCode::KeyP) {
         **gerald = GeraldState::Attack;
+    }
+}
+
+fn gerald_decision_tree(
+    mut sounds: MessageReader<SoundEvent>,
+    player: Single<(&Transform, &Health), With<Player>>,
+    gerald: Single<(&Transform, &mut Gerald, &mut GeraldState), Without<Player>>,
+) {
+    let (player_tf, player_health) = player.into_inner();
+    let (tf, mut gerald, mut state) = gerald.into_inner();
+    let pos = tf.translation.truncate();
+    let player_pos = player_tf.translation.truncate();
+    let player_alive = player_health.current > 0.;
+
+    let heard = sounds
+        .read()
+        .filter(|sound| sound.pos.distance(pos) <= sound.kind.loudness())
+        .last()
+        .map(|sound| sound.pos)
+        .filter(|_| player_alive);
+    let sees_player = player_alive && player_pos.distance(pos) <= GERALD_SIGHT_RANGE;
+
+    let spotted = if sees_player { Some(player_pos) } else { heard };
+    if spotted.is_some() {
+        gerald.last_known = spotted;
+    }
+
+    let next = match *state {
+        GeraldState::Idle | GeraldState::Patrol if spotted.is_some() => Some(GeraldState::Chase),
+        GeraldState::Chase => {
+            let target = *gerald.last_known.get_or_insert(player_pos);
+            let reached = (target.x - pos.x).abs() <= ARRIVE_DISTANCE;
+            if !player_alive || (reached && !sees_player) {
+                gerald.last_known = None;
+                Some(GeraldState::Patrol)
+            } else {
+                None
+            }
+        }
+        _ => None,
+    };
+
+    if let Some(next) = next {
+        *state = next;
     }
 }

@@ -49,6 +49,7 @@ pub const PLAYER_STOMP_DAMAGE: f32 = 30.0;
 pub const GERALD_HEALTH: f32 = 30.0;
 pub const GERALD_DAMAGE: f32 = 5.0;
 pub const GERALD_SPEED: f32 = 40.0;
+pub const GERALD_SIGHT_RANGE: f32 = 200.0; // placeholder
 
 // Stats for enemies, so we can easily tweak them in one place.
 pub struct EnemyStats {
