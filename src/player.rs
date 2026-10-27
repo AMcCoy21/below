@@ -235,14 +235,33 @@ fn move_player(
         .clamp(LEVEL_LEFT + half_w, LEVEL_RIGHT - half_w);
 }
 
-fn face_cursor(cursor: Res<CursorWorld>, player: Single<(&Transform, &mut Player)>) {
-    let Some(cursor) = cursor.0 else {
-        return;
-    };
+fn face_cursor(
+    cursor: Res<CursorWorld>,
+    keys: Res<ButtonInput<KeyCode>>,
+    mouse: Res<ButtonInput<MouseButton>>,
+    player: Single<(&Transform, &mut Player)>,
+) {
     let (tf, mut player) = player.into_inner();
-    let dx = cursor.x - tf.translation.x;
-    if dx.abs() > FACING_DEADZONE {
-        player.facing = dx.signum();
+
+    if mouse.pressed(MouseButton::Left) {
+        if let Some(cursor) = cursor.0 {
+            let dx = cursor.x - tf.translation.x;
+            if dx.abs() > FACING_DEADZONE {
+                player.facing = dx.signum();
+            }
+        }
+        return;
+    }
+
+    let mut dir = 0.;
+    if keys.any_pressed([KeyCode::KeyA, KeyCode::ArrowLeft]) {
+        dir -= 1.;
+    }
+    if keys.any_pressed([KeyCode::KeyD, KeyCode::ArrowRight]) {
+        dir += 1.;
+    }
+    if dir != 0. {
+        player.facing = dir;
     }
 }
 
