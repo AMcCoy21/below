@@ -7,7 +7,7 @@ use crate::{
     player::{Player, PlayerSystems},
     stats::{
         Damage, ENEMY_HIT_COOLDOWN, Enemy, HIT_COOLDOWN, Health, HitCooldown, Hitbox,
-        Invulnerable, PLAYER_STOMP_DAMAGE,
+        Invulnerable, PLAYER_STOMP_DAMAGE, Stompable,
     },
 };
 
@@ -132,7 +132,7 @@ fn player_enemy_contact(
         Without<Enemy>,
     >,
     mut enemies: Query<
-        (&mut Transform, &Hitbox, &Damage, &mut Health, &mut HitCooldown, Has<Invulnerable>),
+        (&mut Transform, &Hitbox, &Damage, &mut Health, &mut HitCooldown, Has<Invulnerable>, Has<Stompable>),
         (With<Enemy>, Without<Player>),
     >,
 ) {
@@ -149,7 +149,7 @@ fn player_enemy_contact(
     let falling = player.vel.y < 0.;
     let mut stomped = false;
 
-    for (mut enemy_tf, enemy_box, damage, mut enemy_health, mut enemy_cooldown, invulnerable) in
+    for (mut enemy_tf, enemy_box, damage, mut enemy_health, mut enemy_cooldown, invulnerable, stompable) in
         &mut enemies
     {
         let enemy_pos = enemy_tf.translation.truncate();
@@ -161,7 +161,7 @@ fn player_enemy_contact(
         }
 
         let enemy_top = enemy_pos.y + enemy_box.0.y / 2.;
-        if falling && prev_feet >= enemy_top - STOMP_TOLERANCE {
+        if stompable && falling && prev_feet >= enemy_top - STOMP_TOLERANCE {
             stomped = true;
             player.vel.y = STOMP_BOUNCE;
             player.can_fastfall = true;

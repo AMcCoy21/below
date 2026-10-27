@@ -65,6 +65,7 @@ fn setup_level(
         y_offset += WIN_H;
     }
 
+    // Spawn floor
     let mut i = 0;
     let mut t = Vec3::new(
         -WIN_W / 2. + TILE_SIZE / 2.,
@@ -90,4 +91,36 @@ fn setup_level(
         i += 1;
         t += Vec3::new(TILE_SIZE, 0., 0.);
     }
+
+    // Spawn some obstacle tiles
+    t = Vec3::new(48., (-WIN_H / 2.) + TILE_SIZE + 16., 1.);
+    spawn_tile(&mut commands, &brick_image, t);
+
+    t += Vec3::new(32., 0., 0.);
+    spawn_tile(&mut commands, &brick_image, t);
+
+    t += Vec3::new(256., 0., 0.);
+    spawn_tile(&mut commands, &brick_image, t);
+
+}
+
+// Adapted from CS1666_examples
+fn spawn_tile(
+    commands: &mut Commands,
+    brick_image: &Res<BrickImage>,
+    translation: Vec3,
+) {
+    commands.spawn((
+        Sprite {
+            image: brick_image.0.clone(),
+            custom_size: Some(Vec2::splat(TILE_SIZE)),
+            ..default()
+        },
+        Transform {
+            translation: translation,
+            ..default()
+        },
+        Brick,
+    ))
+    .insert(Brick);
 }
