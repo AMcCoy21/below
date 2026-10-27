@@ -4,7 +4,7 @@ use crate::{
     loading::despawn_with,
     proc_gen::{
         geometry::{Edge, Point},
-        room_generation::{frame_camera, map_preview, map_rooms, RoomWallImage},
+        room_generation::{frame_camera, map_preview, map_rooms, ProcGenSeed, RoomWallImage},
         triangulation_helpers::*,
     },
 };
@@ -104,9 +104,10 @@ fn setup_triangulation_preview(
     wall_image: Res<RoomWallImage>,
     window: Single<&Window, With<PrimaryWindow>>,
     camera: Single<(&mut Transform, &mut Projection), With<Camera2d>>,
+    seed: Res<ProcGenSeed>,
 ) {
     //Getting room centers to then traingulate
-    let map = map_rooms(42);
+    let map = map_rooms(seed.0);
     map_preview(&map, &mut commands, &wall_image.0);
 
     //I want points not rooms, so i'm turning rooms into points

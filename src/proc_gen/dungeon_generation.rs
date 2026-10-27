@@ -35,9 +35,11 @@ pub fn generate_dungeon(seed: u64) -> DungeonLayout {
 
     let mut selected_edges = mst_edges.clone();
 
+    // Seeded so the same seed always gives the same loops
+    let mut rng = StdRng::seed_from_u64(seed);
     for edge in &delauney_edges {
         let in_mst = mst_edges.iter().any(|e| e.a == edge.a && e.b == edge.b);
-        if !in_mst && rand::random::<f32>() >= 0.8 {
+        if !in_mst && rng.gen_bool(0.2) {
             selected_edges.push(*edge);
         }
     }
