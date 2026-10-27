@@ -16,7 +16,7 @@ const GERALD_SIZE: Vec2 = Vec2::new(32., 32.);
 const ARRIVE_DISTANCE: f32 = 4.;
 
 // Copied over from player.rs for gerald_physics()
-const GRAVITY: f32 = 1024.; // Less gravity because he's smaller
+const GRAVITY: f32 = 512.; // Less gravity because he's smaller
 const MAX_FALL_SPEED: f32 = 1200.;
 
 #[derive(Component, Default)]
