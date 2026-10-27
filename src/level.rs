@@ -93,13 +93,37 @@ fn setup_level(
     }
 
     // Spawn some obstacle tiles
+
+    // Tiles are 32 units in world/game space, despite being 16 pixel units in resolution
+
+    // Left tower to player 2 blocks tall part 1
+    t = Vec3::new(-160., (-WIN_H / 2.) + TILE_SIZE + 16., 1.);
+    spawn_tile(&mut commands, &brick_image, t);
+    t = Vec3::new(-160., (-WIN_H / 2.) + TILE_SIZE + 48., 1.);
+    spawn_tile(&mut commands, &brick_image, t);
+    // Left tower part 2
+    t += Vec3::new(32., -32., 0.);
+    spawn_tile(&mut commands, &brick_image, t);
+    t += Vec3::new(0., 32., 0.);
+    spawn_tile(&mut commands, &brick_image, t);
+
+    // uh quick reset for t
     t = Vec3::new(48., (-WIN_H / 2.) + TILE_SIZE + 16., 1.);
-    spawn_tile(&mut commands, &brick_image, t);
 
-    t += Vec3::new(32., 0., 0.);
-    spawn_tile(&mut commands, &brick_image, t);
-
+    // Right tower 2 blocks tall part 1
     t += Vec3::new(256., 0., 0.);
+    spawn_tile(&mut commands, &brick_image, t);
+    t += Vec3::new(0., 32., 0.);
+    spawn_tile(&mut commands, &brick_image, t);
+    // Right tower part 2
+    t += Vec3::new(32., -32., 0.);
+    spawn_tile(&mut commands, &brick_image, t);
+    t += Vec3::new(0., 32., 0.);
+    spawn_tile(&mut commands, &brick_image, t);
+    // Right tower part 3
+    t += Vec3::new(32., -32., 0.);
+    spawn_tile(&mut commands, &brick_image, t);
+    t += Vec3::new(0., 32., 0.);
     spawn_tile(&mut commands, &brick_image, t);
 
 }
