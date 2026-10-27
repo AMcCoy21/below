@@ -7,12 +7,17 @@ use crate :: {
     loading::{ LoadingAssets, despawn_with },
     stats::{ GERALD, GERALD_SPEED, HitCooldown, Hitbox, MoveSpeed, Stompable, },
     player::Player,
+    level::Brick,
 };
 use crate::{ sound::SoundEvent, stats::{ GERALD_SIGHT_RANGE, Health } };
 
 const SPRITE_SCALE: f32 = 2.;
 const GERALD_SIZE: Vec2 = Vec2::new(32., 32.);
 const ARRIVE_DISTANCE: f32 = 4.;
+
+// Copied over from player.rs for gerald_physics()
+const GRAVITY: f32 = 1024.; // Less gravity because he's smaller
+const MAX_FALL_SPEED: f32 = 1200.;
 
 #[derive(Component, Default)]
 pub struct Gerald {
@@ -59,8 +64,9 @@ impl Plugin for GeraldPlugin {
         app.add_systems(Startup, load_gerald)
             .add_systems(OnEnter(GameState::Playing), spawn_gerald)
             .add_systems(Update, (
-                gerald_state_change, 
+                gerald_state_change,
                 gerald_ai,
+                gerald_physics,
                 update_gerald_sprite,
             ))
             .add_systems(Update, gerald_decision_tree.before(gerald_ai))
@@ -102,7 +108,7 @@ fn spawn_gerald(mut commands: Commands, sheet: Res<GeraldSheet>) {
             },
         ),
         // What location he spawns at. It's currently hard-coded so he spawns 128 units away on x and standing on the floor.
-        Transform::from_xyz(128., LEVEL_BOTTOM + TILE_SIZE + GERALD_SIZE.y / 2., 2.)
+        Transform::from_xyz(128., (LEVEL_BOTTOM + TILE_SIZE + GERALD_SIZE.y / 2.) + 320., 2.)
             .with_scale(Vec3::splat(SPRITE_SCALE)),
         Gerald::default(),
         GERALD.bundle(),
@@ -137,10 +143,41 @@ fn update_gerald_sprite(
     }
 }
 
+fn gerald_physics(
+    time: Res<Time>,
+    gerald: Single<(&mut Transform, &mut Gerald)>,
+    bricks: Query<&Transform, (With<Brick>, Without<Gerald>)>, // For testing collisions
+) {
+    let (mut tf, mut gerald) = gerald.into_inner();
+    let dt = time.delta_secs().min(1. / 30.);
+
+    // Apply gravity
+    gerald.velocity.y = (gerald.velocity.y - GRAVITY * dt).min(-MAX_FALL_SPEED);
+
+    // Apply velocity for current update frame
+    tf.translation.y += gerald.velocity.y * dt;
+
+    // Collision with tiles for just gravity
+    // FOR EVERY BRICK, if gerald is.. penetrating it, then stop him
+    for brick in &bricks {
+        let (pen, push) = penetration(tf.translation, brick.translation);
+        if pen.x > 0.01 && pen.y > 0.01 {
+            tf.translation.y += pen.y * push.y;
+            gerald.velocity.y = 0.;
+        }
+    }
+}
+
+fn penetration(gerald: Vec3, tile: Vec3) -> (Vec2, Vec2) {
+    let d = (gerald - tile).truncate();
+    let pen = (GERALD_SIZE + Vec2::splat(TILE_SIZE)) / 2. - d.abs();
+    (pen, d.signum())
+}
+
 fn gerald_ai(
     time: Res<Time>,
     player: Single<&Transform, With<Player>>,
-    mut gerald: Single<(
+    gerald: Single<(
         &mut Transform,
         &mut Gerald,
         &mut GeraldDirection,
@@ -149,6 +186,7 @@ fn gerald_ai(
     ),
         Without<Player>,
     >,
+    bricks: Query<&Transform, (With<Brick>, Without<Gerald>)>, // for testing collisions
 ) {
     let (mut tf, mut gerald, mut direction, mut patrol, state) = gerald.into_inner();
     let dt = time.delta_secs().min(1. / 30.);
@@ -156,7 +194,7 @@ fn gerald_ai(
     match *state {
         // Idle - Gerald wil stand still. Unlikely that he ever has to go into this state.
         GeraldState::Idle => {
-            gerald.velocity = Vec2::ZERO;
+            //gerald.velocity = Vec2::ZERO;
             *direction = GeraldDirection::Front;
         }
         // Patrol - Gerald walks back and forth a random amount of blocks.
@@ -182,6 +220,15 @@ fn gerald_ai(
             gerald.velocity.x = patrol.direction * GERALD_SPEED;
             tf.translation.x += patrol.direction * movement;
             patrol.distance_remaining -= movement;
+
+            // Messy collision check copy-pasted from gerald_physics()
+            for brick in &bricks {
+                let (pen, push) = penetration(tf.translation, brick.translation);
+                if pen.x > 0.01 && pen.y > 0.01 {
+                    tf.translation.x += pen.x * push.x;
+                    gerald.velocity.x = 0.;
+                }
+            }
         }
 
         // Chase - Gerald will follow player to where he sees them.
@@ -199,6 +246,15 @@ fn gerald_ai(
 
             // Gerald will go 1.5 times faster when he's chasing
             tf.translation.x += gerald.velocity.x * dt * 1.5;
+
+            // Messy collision check copy-pasted from gerald_physics()
+            for brick in &bricks {
+                let (pen, push) = penetration(tf.translation, brick.translation);
+                if pen.x > 0.01 && pen.y > 0.01 {
+                    tf.translation.x += pen.x * push.x * 1.5; // 1.5 comes from the line above that makes him faster when chasing
+                    gerald.velocity.x = 0.;
+                }
+            }
         }
 
         // Attack - Gerald will attack the player. riveting news.
